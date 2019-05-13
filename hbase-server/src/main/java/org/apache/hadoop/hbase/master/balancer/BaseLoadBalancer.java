@@ -754,6 +754,16 @@ public abstract class BaseLoadBalancer implements LoadBalancer {
       return regionsPerServer[server].length;
     }
 
+    double[][] getTableServerRegionCount() {
+      double[][] tableServerRegionCount = new double[numTables][numServers];
+      for (int i = 0; i < numTables; i++) {
+        for (int j = 0; j < numServers; j++) {
+          tableServerRegionCount[i][j] = (double)numRegionsPerServerPerTable[j][i];
+        }
+      }
+      return tableServerRegionCount;
+    }
+
     boolean contains(int[] arr, int val) {
       return Arrays.binarySearch(arr, val) >= 0;
     }

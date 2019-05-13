@@ -142,6 +142,7 @@ public class StochasticLoadBalancer extends BaseLoadBalancer {
    */
   public StochasticLoadBalancer() {
     super(new MetricsStochasticBalancer());
+    LOG.info("Modified StochasticLoadBalancer");
   }
 
   @Override
@@ -1108,26 +1109,23 @@ public class StochasticLoadBalancer extends BaseLoadBalancer {
    */
   static class TableSkewCostFunction extends CostFunction {
 
-    private static final String TABLE_SKEW_COST_KEY =
-        "hbase.master.balancer.stochastic.tableSkewCost";
+	private static final String TABLE_SKEW_COST_KEY =
+	    "hbase.master.balancer.stochastic.tableSkewCost";
     private static final float DEFAULT_TABLE_SKEW_COST = 35;
 
-    TableSkewCostFunction(Configuration conf) {
-      super(conf);
-      this.setMultiplier(conf.getFloat(TABLE_SKEW_COST_KEY, DEFAULT_TABLE_SKEW_COST));
-    }
+	TableSkewCostFunction(Configuration conf) {
+	  super(conf);
+	  this.setMultiplier(conf.getFloat(TABLE_SKEW_COST_KEY, DEFAULT_TABLE_SKEW_COST));
+	}
 
     @Override
     double cost() {
-      double max = cluster.numRegions;
-      double min = ((double) cluster.numRegions) / cluster.numServers;
-      double value = 0;
-
-      for (int i = 0; i < cluster.numMaxRegionsPerTable.length; i++) {
-        value += cluster.numMaxRegionsPerTable[i];
+      double cost = 0;
+      double[][] tableServerRegionCount = cluster.getTableServerRegionCount();
+      for (int i = 0; i < tableServerRegionCount.length; i++) {
+        cost += costFromArray(tableServerRegionCount[i]);
       }
-
-      return scale(min, max, value);
+      return cost;
     }
   }
 
